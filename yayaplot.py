@@ -167,7 +167,7 @@ def updateFile():
             global widg
             ## Add a grid to the view
             g = gl.GLGridItem()
-            g.scale(DOMAIN[3]/10.0, DOMAIN[4]/10.0, 1) #TODO:scale this using domain size
+            g.scale(DOMAIN[0]/10.0, DOMAIN[1]/10.0, 1) #TODO:scale this using domain size
             g.setDepthValue(10)  # draw grid after surfaces since they may be translucent
             #g.translate(C[0], C[1], C[2])
             widg.addItem(g)
