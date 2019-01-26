@@ -54,6 +54,8 @@ class ItemHandler:
         self.w = glWidget
         
         self.cColor = (1,0,0,1) # RGBA
+        self.cRed = (1,0,0,1) # RGBA
+        self.cYellow = (1,1,0,1)
         
     def addDataFrame(self, stringStream):                
         self.DataFrames.append(stringStream)
@@ -74,7 +76,7 @@ class ItemHandler:
             elif c[0] is 's':     #Add a sphere
                 arg = [float(i) for i in c[1:]]
                 md = gl.MeshData.sphere(rows=10, cols=20, radius=arg[3])
-                m = gl.GLMeshItem(meshdata=md, color = self.cColor, smooth=False, shader='shaded')#, shader='balloon')
+                m = gl.GLMeshItem(meshdata=md, color = self.cYellow, smooth=True, shader='shaded')#, shader='balloon')
                 m.translate(arg[0], arg[1], arg[2])
                 m.translate(-C[0], -C[1], -C[2])
                 self.ItemList.append(m)
@@ -82,8 +84,9 @@ class ItemHandler:
 
             elif c[0] is 't':   # Add tube
                 arg = [float(i) for i in c[1:]]
-                md = gl.MeshData.cylinder(rows=10, cols=20, radius=(arg[3], arg[4]))
-                m = gl.GLMeshItem(meshdata=md, color = self.cColor, smooth=False)#, shader='balloon')
+                md = gl.MeshData.cylinder(rows=10, cols=20, length=arg[7], radius=(arg[8], arg[8]))
+                m = gl.GLMeshItem(meshdata=md, color = self.cRed, smooth=True, shader='shaded')#, shader='balloon')
+                m.rotate(arg[3], arg[4], arg[5], arg[6])
                 m.translate(arg[0], arg[1], arg[2])
                 m.translate(-C[0], -C[1], -C[2])
                 self.ItemList.append(m)
