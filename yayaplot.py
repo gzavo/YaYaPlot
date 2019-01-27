@@ -11,18 +11,19 @@ import os
 import sys
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
-from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
+#from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 import pyqtgraph.opengl as gl
 import numpy as np
-# import matplotlib.pyplot
+import matplotlib.pyplot
 
-# steps = np.linspace(0., 1., 256)
-# cmap_plt = matplotlib.pyplot.get_cmap('jet')
-# clrmap_pg = pg.ColorMap(steps, cmap_plt(steps))
+steps = np.linspace(0., 1., 256)
+cmap_plt = matplotlib.pyplot.get_cmap('jet')
+clrmap_pg = pg.ColorMap(steps, cmap_plt(steps))
 
 def normColor(lcolor):
-	nmax = 10**-18
-	return np.abs(lcolor)/nmax
+    nmin = np.abs(np.log(1e-19))
+    nmax = np.abs(np.log(1e-22))
+    return clrmap_pg.mapToFloat((np.abs(np.log(np.abs(lcolor)))-nmin)/(nmax-nmin))
 
 ## Class to watch file content changes
 class FileWatcher:
@@ -85,7 +86,7 @@ class ItemHandler:
             elif c[0] is 's':     #Add a sphere
                 arg = [float(i) for i in c[1:]]
                 md = gl.MeshData.sphere(rows=10, cols=20, radius=arg[3])
-                m = gl.GLMeshItem(meshdata=md, color = self.cRed, smooth=True, shader='shaded')#, shader='balloon')
+                m = gl.GLMeshItem(meshdata=md, color = self.cYellow, smooth=True, shader='shaded')#, shader='balloon')
                 m.translate(arg[0], arg[1], arg[2])
                 m.translate(-C[0], -C[1], -C[2])
                 self.ItemList.append(m)
@@ -95,7 +96,8 @@ class ItemHandler:
                 arg = [float(i) for i in c[1:]]
                 lcolor = self.cYellow
                 if(len(arg)>8):
-                	lcolor = normColor(arg[8])
+                    lcolor = normColor(arg[9])
+                    print(arg[9], lcolor)
                 md = gl.MeshData.cylinder(rows=10, cols=20, length=arg[7], radius=(arg[8], arg[8]))
                 m = gl.GLMeshItem(meshdata=md, color = lcolor, smooth=True, shader='shaded')#, shader='balloon')
                 m.rotate(arg[3], arg[4], arg[5], arg[6])
