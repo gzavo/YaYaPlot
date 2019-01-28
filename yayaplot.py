@@ -16,6 +16,8 @@ import pyqtgraph.opengl as gl
 import numpy as np
 import matplotlib.pyplot
 
+title = "Uniform Dynamic Visualisation"
+
 steps = np.linspace(0., 1., 256)
 cmap_plt = matplotlib.pyplot.get_cmap('jet')
 clrmap_pg = pg.ColorMap(steps, cmap_plt(steps))
@@ -66,16 +68,33 @@ class ItemHandler:
         self.cColor = (1,0,0,1) # RGBA
         self.cRed = (1,0,0,1) # RGBA
         self.cYellow = (1,1,0,1)
+
+        self.currentFrame = 0
         
     def addDataFrame(self, stringStream):                
         self.DataFrames.append(stringStream)
 
+    def setScene(self, nrScene):
+        self.currentFrame = nrScene
+
     def buildLastScene(self):
         nr = len(self.DataFrames) - 1
-        self.buildScene(nr)
+        self.currentFrame = nr
+        self.buildScene()
     
-    def buildScene(self, nrDataFrame):
+    def buildPrevScene(self):
+        if self.currentFrame > 0:
+            self.currentFrame = self.currentFrame - 1
+            self.buildScene()
+
+    def buildNextScene(self):
+        if self.currentFrame < (len(self.DataFrames) - 1):
+            self.currentFrame = self.currentFrame + 1
+            self.buildScene()
+
+    def buildScene(self):
         global C
+        nrDataFrame = self.currentFrame
         for l in self.DataFrames[nrDataFrame]:
             c = l.split()
              
@@ -97,7 +116,6 @@ class ItemHandler:
                 lcolor = self.cYellow
                 if(len(arg)>8):
                     lcolor = normColor(arg[9])
-                    print(arg[9], lcolor)
                 md = gl.MeshData.cylinder(rows=10, cols=20, length=arg[7], radius=(arg[8], arg[8]))
                 m = gl.GLMeshItem(meshdata=md, color = lcolor, smooth=True, shader='shaded')#, shader='balloon')
                 m.rotate(arg[3], arg[4], arg[5], arg[6])
@@ -117,6 +135,8 @@ class ItemHandler:
             
             else:               # Unhandled directive
                 print("Unknown command line: " + l )
+
+            self.w.setWindowTitle("%s. Frame: %d / %d" % (title, ih.currentFrame, len(ih.DataFrames)-1))
     
     def updateScene(self, nrDataFrame):
         pass    # TODO: implement it when needed
@@ -133,7 +153,8 @@ def playScenes():
     if index >= len(ih.DataFrames):
         pass
     else:
-        ih.buildScene(index)
+        ih.setScene(index)
+        ih.buildScene()
 
 
 def parseFile():
@@ -148,7 +169,8 @@ def parseFile():
         if isRealTimeView:
             ih.buildLastScene()
         else:
-            ih.buildScene(0)
+            ih.setScene(0)
+            ih.buildScene()
 
 
 def updateViewCoordSystem():
@@ -202,11 +224,59 @@ def updateFile():
         else:
             frame.append(l)  
 
+
+
+class GLWidget(gl.GLViewWidget):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.noRepeatKeys.append(QtCore.Qt.Key_Escape)
+        self.noRepeatKeys.append(QtCore.Qt.Key_Home)
+        self.noRepeatKeys.append(QtCore.Qt.Key_End)
+        self.noRepeatKeys.append(QtCore.Qt.Key_C)
+
+    def evalKeyState(self):
+        global ih
+        speed = 2.0
+        if len(self.keysPressed) > 0:
+            for key in self.keysPressed:
+                if key == QtCore.Qt.Key_Right:
+                    self.orbit(azim=-speed, elev=0)
+                elif key == QtCore.Qt.Key_Left:
+                    self.orbit(azim=speed, elev=0)
+                elif key == QtCore.Qt.Key_Up:
+                    self.orbit(azim=0, elev=-speed)
+                elif key == QtCore.Qt.Key_Down:
+                    self.orbit(azim=0, elev=speed)
+                elif key == QtCore.Qt.Key_PageUp:
+                    ih.clearScene()
+                    ih.buildNextScene()
+                elif key == QtCore.Qt.Key_PageDown:
+                    ih.clearScene()
+                    ih.buildPrevScene()  
+                elif key == QtCore.Qt.Key_Home:
+                    ih.clearScene()
+                    ih.setScene(0)
+                    ih.buildScene()
+                elif key == QtCore.Qt.Key_End:
+                    ih.clearScene()
+                    ih.setScene(len(ih.DataFrames)-1)
+                    ih.buildScene()                              
+                elif key == QtCore.Qt.Key_Escape:
+                    self.close()
+                elif key == QtCore.Qt.Key_C:
+                    print("C") 
+
+                self.keyTimer.start(100)
+        else:
+            self.keyTimer.stop()
+
         
 if __name__ == '__main__':
     ## Create a GL View widget to display data
     app = QtGui.QApplication([])
-    widg = gl.GLViewWidget()
+    widg = GLWidget() #gl.GLViewWidget()
+    widg.setBackgroundColor((80,80,80))
     widg.show()
     widg.setWindowTitle('Uniform Dynamic Visualisation')
     
