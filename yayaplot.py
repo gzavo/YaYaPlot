@@ -57,7 +57,9 @@ class FileWatcher:
                 self.fileOSNO = os.fstat(self.fileHandle.fileno()).st_ino
         except IOError:
             pass
-       
+    
+    def close(self):
+        self.fileHandle.close()   
 
 class ItemHandler:
     def __init__(self, glWidget):
@@ -70,6 +72,13 @@ class ItemHandler:
         self.cYellow = (1,1,0,1)
 
         self.currentFrame = 0
+
+    def reset(self):
+        self.clearScene()
+        self.ItemList = []
+        self.DataFrames = []
+        self.currentFrame = 0
+        self.cColor = (1,0,0,1) # RGBA
         
     def addDataFrame(self, stringStream):                
         self.DataFrames.append(stringStream)
@@ -173,6 +182,14 @@ def parseFile():
             ih.buildScene()
 
 
+def resetFile():
+    global ih, fw, frame
+
+    fw.close()
+    frame = []
+    fw = FileWatcher(fname)
+
+
 def updateViewCoordSystem():
     global widg, DOMAIN, C, boxDomain
 
@@ -234,6 +251,7 @@ class GLWidget(gl.GLViewWidget):
         self.noRepeatKeys.append(QtCore.Qt.Key_Home)
         self.noRepeatKeys.append(QtCore.Qt.Key_End)
         self.noRepeatKeys.append(QtCore.Qt.Key_C)
+        self.noRepeatKeys.append(QtCore.Qt.Key_R)
 
     def evalKeyState(self):
         global ih
@@ -265,7 +283,9 @@ class GLWidget(gl.GLViewWidget):
                 elif key == QtCore.Qt.Key_Escape:
                     self.close()
                 elif key == QtCore.Qt.Key_C:
-                    print("C") 
+                    print("C")
+                elif key == QtCore.Qt.Key_R:
+                    resetFile()  
 
                 self.keyTimer.start(100)
         else:
