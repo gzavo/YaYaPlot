@@ -23,9 +23,15 @@ cmap_plt = matplotlib.pyplot.get_cmap('jet')
 clrmap_pg = pg.ColorMap(steps, cmap_plt(steps))
 
 def normColor(lcolor):
-    nmin = np.abs(np.log(1e-19))
-    nmax = np.abs(np.log(1e-22))
-    return clrmap_pg.mapToFloat((np.abs(np.log(np.abs(lcolor)))-nmin)/(nmax-nmin))
+    # Log color scale
+    # nmin = np.abs(np.log(1e-19))
+    # nmax = np.abs(np.log(1e-22))
+    # return clrmap_pg.mapToFloat((np.abs(np.log(np.abs(lcolor)))-nmin)/(nmax-nmin))
+
+    # Linear color scale
+    nmin = 1e-23
+    nmax = 1e-12
+    return clrmap_pg.mapToFloat((np.abs(lcolor)-nmin)/(nmax-nmin))
 
 ## Class to watch file content changes
 class FileWatcher:
@@ -188,6 +194,7 @@ def resetFile():
     fw.close()
     frame = []
     fw = FileWatcher(fname)
+    ih.reset()
 
 
 def updateViewCoordSystem():
